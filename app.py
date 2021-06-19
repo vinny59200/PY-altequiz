@@ -12,7 +12,10 @@ app.logger.setLevel(logging.INFO)
 
 mysql = MySQL()
 # TODO Remove this
-
+app.config['MYSQL_DATABASE_USER'] = 'pASQrpqoMf'
+app.config['MYSQL_DATABASE_PASSWORD'] = 'wV7XAntpAS'
+app.config['MYSQL_DATABASE_DB'] = 'pASQrpqoMf'
+app.config['MYSQL_DATABASE_HOST'] = 'remotemysql.com'
 mysql.init_app(app)
 
 
@@ -71,27 +74,14 @@ def get_question(id_from_front):
     return cursor, record
 
 
-def get_question_json(next_question_id):
-    conn = mysql.connect()
-    cursor = conn.cursor()
-    next_question_id = next_question_id.replace('(', '').replace(')', '').replace(',', '')
-    query_string = "SELECT * FROM question WHERE id = %s "
-    cursor.execute(query_string, (next_question_id,))
-    row_headers = [x[0] for x in cursor.description]
-    rv = cursor.fetchone()
-    json_data = [dict(zip(row_headers, rv))]
-    conn.close()
-    return json.dumps(json_data[0])
-
-
 def update_karma(real_answer, user_answer, question_id, karma):
     real_answer = handle_multiple_answers(user_answer, real_answer)
     if user_answer == real_answer:
-        result_id = getNextIdByDecile(get_decile(question_id), bool(0))
+        result_id = get_next_question_id_by_decile(get_decile(question_id), bool(0))
         update_question_karma(question_id, karma + 1)
         return str(result_id)
     else:
-        result_id = getNextIdByDecile(get_decile(question_id), bool(1))
+        result_id = get_next_question_id_by_decile(get_decile(question_id), bool(1))
         update_question_karma(question_id, karma - 1)
         return str(result_id)
 
@@ -113,7 +103,7 @@ def update_question_karma(id_from_db, karma):
     conn.close()
 
 
-def getNextIdByDecile(decile, is_plus):
+def get_next_question_id_by_decile(_decile, is_plus):
     conn = mysql.connect()
     cursor = conn.cursor()
     query_string = '''SELECT id
@@ -124,7 +114,7 @@ def getNextIdByDecile(decile, is_plus):
                p, (SELECT @currankvv := 0) r
                ORDER BY  total desc ) as dt,(select count(distinct id) as cnt from
                `question`) as ct ) sub where sub.decile = %s '''
-    cursor.execute(query_string, (plus_or_minus(decile, is_plus),))
+    cursor.execute(query_string, (plus_or_minus(_decile, is_plus),))
     rv = list(cursor.fetchall())
     shuffle(rv)
     result_id = rv[0]
@@ -132,17 +122,30 @@ def getNextIdByDecile(decile, is_plus):
     return str(result_id)
 
 
-def plus_or_minus(decile, is_plus):
+def plus_or_minus(_decile, is_plus):
     if is_plus:
-        if decile == 10:
+        if _decile == 10:
             return 10
         else:
-            return decile + 1
+            return _decile + 1
     else:
-        if decile == 0:
+        if _decile == 0:
             return 0
         else:
-            return decile - 1
+            return _decile - 1
+
+
+def get_question_json(next_question_id):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    next_question_id = next_question_id.replace('(', '').replace(')', '').replace(',', '')
+    query_string = "SELECT * FROM question WHERE id = %s "
+    cursor.execute(query_string, (next_question_id,))
+    row_headers = [x[0] for x in cursor.description]
+    rv = cursor.fetchone()
+    json_data = [dict(zip(row_headers, rv))]
+    conn.close()
+    return json.dumps(json_data[0])
 
 
 @app.route('/decile/<question_id>')
