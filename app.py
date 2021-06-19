@@ -33,12 +33,12 @@ def first():
     return str(result)
 
 
-@app.route('/question/<idQuestion>')
-def question(id_question):
+@app.route('/question/<question_id>')
+def question(question_id):
     conn = mysql.connect()
     cursor = conn.cursor()
     query_string = "SELECT * FROM question WHERE id = %s"
-    cursor.execute(query_string, (id_question,))
+    cursor.execute(query_string, (question_id,))
     row_headers = [x[0] for x in cursor.description]
     rv = cursor.fetchone()
     json_data = [dict(zip(row_headers, rv))]
@@ -145,7 +145,7 @@ def plus_or_minus(decile, is_plus):
             return decile - 1
 
 
-@app.route('/decile/<idQuestion>')
+@app.route('/decile/<question_id>')
 def decile(question_id):
     return str(get_decile(question_id))
 
