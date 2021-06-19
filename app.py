@@ -12,14 +12,11 @@ app.logger.setLevel(logging.INFO)
 
 mysql = MySQL()
 # TODO Remove this
-app.config['MYSQL_DATABASE_USER'] = 'pASQrpqoMf'
-app.config['MYSQL_DATABASE_PASSWORD'] = 'wV7XAntpAS'
-app.config['MYSQL_DATABASE_DB'] = 'pASQrpqoMf'
-app.config['MYSQL_DATABASE_HOST'] = 'remotemysql.com'
+
 mysql.init_app(app)
 
 
-@app.route('/first/')
+@app.route('/api/v1/first/')
 def first():
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -36,7 +33,7 @@ def first():
     return str(result)
 
 
-@app.route('/question/<question_id>')
+@app.route('/api/v1/question/<question_id>')
 def question(question_id):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -49,7 +46,7 @@ def question(question_id):
     return json.dumps(json_data[0])
 
 
-@app.route('/send/', methods=['POST'])
+@app.route('/api/v1/send/', methods=['POST'])
 def send():
     json_from_user = request.json
     question_id = json_from_user['id']
@@ -148,7 +145,7 @@ def get_question_json(next_question_id):
     return json.dumps(json_data[0])
 
 
-@app.route('/decile/<question_id>')
+@app.route('/api/v1/decile/<question_id>')
 def decile(question_id):
     return str(get_decile(question_id))
 
