@@ -91,15 +91,6 @@ def handle_multiple_answers(user_answer, real_answer):
         return real_answer
 
 
-def update_question_karma(id_from_db, karma):
-    conn = mysql.connect()
-    cursor = conn.cursor()
-    sql = "UPDATE question SET karma = %s WHERE id = %s"
-    cursor.execute(sql, (karma, id_from_db,))
-    conn.commit()
-    conn.close()
-
-
 def get_next_question_id_by_decile(_decile, is_plus):
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -117,6 +108,15 @@ def get_next_question_id_by_decile(_decile, is_plus):
     result_id = rv[0]
     conn.close()
     return str(result_id)
+
+
+def update_question_karma(id_from_db, karma):
+    conn = mysql.connect()
+    cursor = conn.cursor()
+    sql = "UPDATE question SET karma = %s WHERE id = %s"
+    cursor.execute(sql, (karma, id_from_db,))
+    conn.commit()
+    conn.close()
 
 
 def plus_or_minus(_decile, is_plus):
@@ -143,11 +143,6 @@ def get_question_json(next_question_id):
     json_data = [dict(zip(row_headers, rv))]
     conn.close()
     return json.dumps(json_data[0])
-
-
-@app.route('/api/v1/decile/<question_id>')
-def decile(question_id):
-    return str(get_decile(question_id))
 
 
 def get_decile(question_id):
