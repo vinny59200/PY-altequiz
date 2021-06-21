@@ -19,7 +19,7 @@ app.config['MYSQL_DATABASE_HOST'] = 'sql11.freemysqlhosting.net'
 mysql.init_app(app)
 
 
-@app.route('/api/v1/first/')
+@app.route('/api/v1/question/first/')
 def first():
     conn = mysql.connect()
     cursor = conn.cursor()
@@ -31,9 +31,9 @@ def first():
     `question`) as ct where rankvv = 85 '''
     cursor.execute(query_string, )
     rv = cursor.fetchone()
-    result = rv[0]
+    first_question_id = rv[0]
     conn.close()
-    return str(result)
+    return get_question_json(first_question_id)
 
 
 @app.route('/api/v1/question/<question_id>')
@@ -49,7 +49,7 @@ def question(question_id):
     return json.dumps(json_data[0])
 
 
-@app.route('/api/v1/send/', methods=['POST'])
+@app.route('/api/v1/question/next', methods=['POST'])
 def send():
     json_from_user = request.json
     question_id = json_from_user['id']
@@ -61,7 +61,7 @@ def send():
 
     next_question_id = update_karma(real_answer, user_answer, question_id, karma)
 
-    return get_question_json(next_question_id)
+    return get_question_json(next_question_id.replace('(', '').replace(')', '').replace(',', ''))
 
 
 def get_question(id_from_front):
@@ -138,7 +138,6 @@ def plus_or_minus(_decile, is_plus):
 def get_question_json(next_question_id):
     conn = mysql.connect()
     cursor = conn.cursor()
-    next_question_id = next_question_id.replace('(', '').replace(')', '').replace(',', '')
     query_string = "SELECT * FROM question WHERE id = %s "
     cursor.execute(query_string, (next_question_id,))
     row_headers = [x[0] for x in cursor.description]
@@ -161,7 +160,6 @@ def get_decile(question_id):
     rv = cursor.fetchone()
     result = rv[3]
     conn.close()
-    print(result)
     return result
 
 
